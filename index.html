@@ -203,6 +203,42 @@ textarea.inp-t { height: auto; min-height: 56px; padding: 6px 8px; resize: verti
 .help p { margin: 0; color: var(--muted); }
 .help h4 { margin: 4px 0 0; font-size: 14px; }
 
+/* Historik */
+.hist-ctrl { display: flex; align-items: center; gap: 4px; }
+.hist-ctrl input[type="range"] { flex: 1; min-width: 0; accent-color: var(--accent); }
+.hist-ctrl button { width: 28px; height: 28px; flex: none; border: 1px solid var(--line-2); background: var(--panel); border-radius: 5px; display: grid; place-items: center; color: var(--muted); }
+.hist-ctrl button:hover:not(:disabled) { color: var(--fg); background: var(--panel-2); }
+.hist-ctrl button:disabled { opacity: .4; cursor: default; }
+.tree { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.tree .obj { grid-template-columns: 18px 14px minmax(0, 1fr) auto; padding-left: 2px; }
+.chev { width: 18px; height: 18px; border: 0; background: none; padding: 0; color: var(--muted); display: grid; place-items: center; border-radius: 4px; transition: transform .15s; }
+.chev:hover { background: var(--line); color: var(--fg); }
+.node.open > .obj .chev { transform: rotate(90deg); }
+.obj.future, .step.future { opacity: .45; }
+.obj.gone .oname { opacity: .6; }
+.obj.gone .oname > :first-child, .obj.gone .oname { text-decoration: line-through; }
+.oname small { text-decoration: none; display: inline-block; }
+.steps { list-style: none; margin: 1px 0 6px 10px; padding: 0 0 0 8px; border-left: 1px solid var(--line-2); display: flex; flex-direction: column; gap: 1px; }
+.step { display: grid; grid-template-columns: 20px 14px minmax(0, 1fr); gap: 6px; align-items: center; padding: 4px 6px; border-radius: 5px; cursor: pointer; font-size: 12.5px; border: 1px solid transparent; }
+.step .sn { font-family: var(--f-num); font-size: 10.5px; color: var(--faint); text-align: right; font-variant-numeric: tabular-nums; }
+.step svg { color: var(--muted); }
+.step .st { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.step:hover { background: var(--panel-2); }
+.step.sel { background: var(--accent-soft); border-color: var(--accent-line); }
+.step.sel svg { color: var(--accent); }
+.step.err .st, .step.err svg { color: var(--warn); }
+.opbadge { width: 30px; height: 30px; border-radius: 7px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); flex: none; }
+.ft { display: flex; flex-direction: column; min-width: 0; }
+.ft b { font-size: 15px; }
+.ft span { color: var(--muted); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.h2s { margin: 4px 0 -2px; font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.field.chg label { color: var(--accent); font-weight: 600; }
+.field.chg .inp input, .field.chg .inp select, .field.chg textarea { border-color: var(--accent-line); }
+.linkbtn { border: 0; background: none; color: var(--accent); font-weight: 600; padding: 0; font-size: 12.5px; }
+.linkbtn:hover { text-decoration: underline; }
+.chip.roll { gap: 10px; }
+.chip.roll button { border: 1px solid currentColor; background: none; color: inherit; border-radius: 999px; padding: 1px 9px; font-size: 12px; font-weight: 600; }
+
 #toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 9px 14px; border-radius: 8px; font-size: 13.5px; z-index: 60; box-shadow: var(--shadow); max-width: calc(100% - 32px); }
 
 /* Mobil */
@@ -253,7 +289,16 @@ textarea.inp-t { height: auto; min-height: 56px; padding: 6px 8px; resize: verti
   <aside class="left" aria-label="Verktyg">
     <section class="sec"><h2>Grundformer</h2><div class="palette" id="palForms"></div></section>
     <section class="sec"><h2>Mallar <small>justerbara delar</small></h2><div class="tpls" id="palTpl"></div></section>
-    <section class="sec"><h2>Objekt i scenen <small id="objCount"></small></h2><ul class="objlist" id="objList"></ul></section>
+    <section class="sec hist"><h2>Historik <small id="histCount"></small></h2>
+      <div class="hist-ctrl" role="group" aria-label="Spola i historiken">
+        <button id="histFirst" title="Till början" aria-label="Till början"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5v14M18 6l-8 6 8 6z"/></svg></button>
+        <button id="histPrev" title="Ett steg bakåt" aria-label="Ett steg bakåt"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg></button>
+        <input type="range" id="histRange" min="0" max="0" value="0" step="1" aria-label="Spärr i historiken">
+        <button id="histNext" title="Ett steg framåt" aria-label="Ett steg framåt"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></button>
+        <button id="histLast" title="Till senaste" aria-label="Till senaste"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 5v14M6 6l8 6-8 6z"/></svg></button>
+      </div>
+      <ul class="tree" id="histTree"></ul>
+    </section>
   </aside>
 
   <main class="stage" id="stage">
@@ -279,6 +324,7 @@ textarea.inp-t { height: auto; min-height: 56px; padding: 6px 8px; resize: verti
       <span class="chip" id="chipPrinter"></span>
       <span class="chip num" id="chipSize" hidden></span>
       <span class="chip bad" id="chipWarn" hidden></span>
+      <span class="chip warn roll" id="chipRoll" hidden><span></span><button type="button">Visa senaste</button></span>
       <span class="hint">Vänsterklick: vrid vyn · Högerklick: panorera · Hjul: zooma</span>
     </div>
     <div id="loading" role="status"><div><div class="spin"></div><div id="loadingText">Startar geometrimotorn…</div></div></div>
@@ -336,6 +382,8 @@ textarea.inp-t { height: auto; min-height: 56px; padding: 6px 8px; resize: verti
       <p>Dra i pilarna i vyn eller skriv in position och vinkel. <b>Lägg på plattan</b> sänker objektet så att det vilar på z = 0.</p>
       <h4>4. Exportera och skriv ut</h4>
       <p>Exportera som 3MF och öppna filen i Bambu Studio. Upphöjd text i annan färg: använd <b>En del per objekt</b> med AMS, eller lägg till ett färgbyte på rätt lagerhöjd i Bambu Studios förhandsvisning.</p>
+      <h4>5. Historik</h4>
+      <p>Varje ändring blir ett steg i historiken till vänster: skapa, mått, flytta, rotera, hål och färg. Klicka på ett steg för att ändra det i efterhand, så räknas alla senare steg om. Med reglaget kan du spola tillbaka och se modellen som den var. Nya ändringar läggs då in efter spärren.</p>
       <h4>Kortkommandon</h4>
       <div class="kbd-list">
         <kbd>G</kbd><span>Flytta</span><kbd>R</kbd><span>Rotera</span>
@@ -870,13 +918,14 @@ const PRINTERS = {
   x1c: { label: 'Bambu Lab X1 Carbon / X1E', size: [256, 256, 256] },
   h2s: { label: 'Bambu Lab H2S', size: [340, 320, 340] },
   h2d: { label: 'Bambu Lab H2D (ett munstycke)', size: [325, 320, 325] },
+  x2d: { label: 'Bambu Lab X2D (ett munstycke)', size: [256, 256, 260] },
 };
 const FILAMENTS = [
   ['Vit', '#f1f1ec'], ['Svart', '#2a2b2e'], ['Grå', '#8d9398'], ['Röd', '#c7342b'], ['Orange', '#e8762d'], ['Gul', '#f1c12f'],
   ['Grön', '#2e9d5a'], ['Turkos', '#1e9aa0'], ['Blå', '#2f6cb4'], ['Lila', '#7a4fa7'], ['Rosa', '#e48fb0'], ['Brun', '#8a5a3b'],
 ];
 const PLA_DENSITY = 1.24; // g/cm³
-const STORE_KEY = 'formverkstad.v1';
+const STORE_KEY = 'formverkstad.v2';
 const ICONS = {
   box: '<path d="M12 3 4 7.5v9L12 21l8-4.5v-9L12 3Z"/><path d="M4 7.5 12 12l8-4.5M12 12v9"/>',
   cyl: '<ellipse cx="12" cy="6.5" rx="7" ry="3"/><path d="M5 6.5v11c0 1.7 3.1 3 7 3s7-1.3 7-3v-11"/>',
@@ -902,7 +951,11 @@ const IC = {
 };
 
 // ---------- Tillstånd ----------
-const state = { objects: [], sel: null, printer: 'a1', quality: 'medium', snap: 1, nextId: 1 };
+// Modellen är en ordnad lista av steg (features). Objekten räknas fram genom att spela upp stegen
+// fram till spärren (marker). null = spärren står efter sista steget.
+const state = { features: [], marker: null, hidden: [], sel: null, selFeat: null, printer: 'a1', quality: 'medium', snap: 1, nextId: 1, fid: 1, collapsed: [] };
+let cur = { objects: [], info: new Map(), map: new Map() };
+Object.defineProperty(state, 'objects', { get: () => cur.objects });
 let core, lastResult = null;
 const undoStack = [], redoStack = [];
 let lastSnap = null;
@@ -910,40 +963,161 @@ let lastSnap = null;
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const fmt = (v, d = 1) => (Math.round(v * 10 ** d) / 10 ** d).toLocaleString('sv-SE', { minimumFractionDigits: 0, maximumFractionDigits: d });
-const byId = id => state.objects.find(o => o.id === id);
+const r3 = v => Math.round(v * 1000) / 1000;
+const byId = id => cur.map.get(id);
 const selObj = () => byId(state.sel);
+const featById = id => state.features.find(f => f.id === id);
 
-function snapState() { return JSON.stringify({ objects: state.objects, nextId: state.nextId }); }
+// ---------- Rotation ----------
+const qOf = r => new THREE.Quaternion().setFromEuler(new THREE.Euler(...r.map(THREE.MathUtils.degToRad), 'ZYX'));
+const rotOf = q => { const e = new THREE.Euler().setFromQuaternion(q, 'ZYX'); return [e.x, e.y, e.z].map(a => { const d = Math.round(THREE.MathUtils.radToDeg(a) * 100) / 100; return Object.is(d, -0) ? 0 : d; }); };
+// delta (runt världens axlar, X sedan Y sedan Z) appliceras efter rot
+const composeRot = (delta, rot) => rotOf(qOf(delta).multiply(qOf(rot)));
+const deltaRot = (from, to) => rotOf(qOf(to).multiply(qOf(from).invert()));
+
+// ---------- Uppspelning ----------
+const activeCount = () => state.marker == null ? state.features.length : Math.min(state.marker, state.features.length);
+function evaluate(upto = activeCount()) {
+  const map = new Map(), order = [], info = new Map();
+  for (let i = 0; i < upto; i++) {
+    const f = state.features[i]; let err = null;
+    if (f.op === 'create') {
+      if (!core.TYPES[f.type]) err = 'Okänd formtyp.';
+      else { map.set(f.obj, { id: f.obj, type: f.type, name: f.name, mode: f.mode || 'solid', color: f.color, params: { ...core.defaults(f.type), ...f.params }, pos: [...f.pos], rot: [...(f.rot || [0, 0, 0])] }); order.push(f.obj); }
+    } else if (f.op === 'copy') {
+      const s = map.get(f.src);
+      if (!s) err = 'Objektet som kopierades finns inte i det här steget.';
+      else { const c = JSON.parse(JSON.stringify(s)); c.id = f.obj; c.name = f.name; c.pos = c.pos.map((v, k) => r3(v + (f.d[k] || 0))); map.set(f.obj, c); order.push(f.obj); }
+    } else {
+      const o = map.get(f.obj);
+      if (!o) err = 'Objektet finns inte i det här steget.';
+      else if (f.op === 'params') Object.assign(o.params, f.params);
+      else if (f.op === 'move') o.pos = o.pos.map((v, k) => r3(v + (f.d[k] || 0)));
+      else if (f.op === 'rotate') o.rot = composeRot(f.r, o.rot);
+      else if (f.op === 'mode') o.mode = f.mode;
+      else if (f.op === 'color') o.color = f.color;
+      else if (f.op === 'del') map.delete(f.obj);
+    }
+    info.set(f.id, { err, idx: i });
+  }
+  const hid = new Set(state.hidden);
+  const objects = order.filter(id => map.has(id)).map(id => { const o = map.get(id); o.hidden = hid.has(id); return o; });
+  return { objects, info, map };
+}
+function reeval() { cur = evaluate(); if (state.sel != null && !cur.map.has(state.sel)) state.sel = null; if (state.selFeat != null && !featById(state.selFeat)) state.selFeat = null; }
+
+// ---------- Registrera steg ----------
+const lastActive = () => { const n = activeCount(); return n ? state.features[n - 1] : null; };
+function insertFeature(f) {
+  f.id = state.fid++;
+  const n = activeCount();
+  state.features.splice(n, 0, f);
+  state.marker = state.marker == null || n + 1 >= state.features.length ? null : n + 1;
+  return f;
+}
+// senaste aktiva steget om det är objektets eget skapandesteg
+const lastCreateOf = id => { const l = lastActive(); return l && l.obj === id && l.op === 'create' ? l : null; };
+const mergeable = (op, id) => { const l = lastActive(); return l && l.op === op && l.obj === id ? l : null; };
+
+function setParam(o, k, v) {
+  const c = lastCreateOf(o.id);
+  if (c) c.params[k] = v;
+  else { const f = mergeable('params', o.id) || insertFeature({ op: 'params', obj: o.id, params: {} }); f.params[k] = v; }
+  reeval();
+}
+function moveObj(o, d) {
+  if (!d.some(v => Math.abs(v) > 1e-9)) return;
+  const c = lastCreateOf(o.id);
+  if (c) c.pos = c.pos.map((v, k) => r3(v + d[k]));
+  else { const f = mergeable('move', o.id) || insertFeature({ op: 'move', obj: o.id, d: [0, 0, 0] }); f.d = f.d.map((v, k) => r3(v + d[k])); }
+  reeval();
+}
+function rotateObj(o, r) {
+  if (!r.some(v => Math.abs(v) > 1e-9)) return;
+  const c = lastCreateOf(o.id);
+  if (c) c.rot = composeRot(r, c.rot || [0, 0, 0]);
+  else { const f = mergeable('rotate', o.id) || insertFeature({ op: 'rotate', obj: o.id, r: [0, 0, 0] }); f.r = composeRot(r, f.r); }
+  reeval();
+}
+function setObjMode(o, m) {
+  if (o.mode === m) return;
+  const c = lastCreateOf(o.id);
+  if (c) c.mode = m;
+  else { const f = mergeable('mode', o.id); if (f) f.mode = m; else insertFeature({ op: 'mode', obj: o.id, mode: m }); }
+  reeval();
+}
+function setColor(o, col) {
+  const c = lastCreateOf(o.id);
+  if (c) c.color = col;
+  else { const f = mergeable('color', o.id); if (f) f.color = col; else insertFeature({ op: 'color', obj: o.id, color: col }); }
+  reeval();
+}
+function renameObj(o, name) {
+  const f = state.features.find(x => x.obj === o.id && (x.op === 'create' || x.op === 'copy'));
+  if (f) f.name = name;
+  reeval();
+}
+
+// ---------- Ångra ----------
+function snapState() { return JSON.stringify({ features: state.features, marker: state.marker, nextId: state.nextId, fid: state.fid, hidden: state.hidden }); }
 function commit() {
   const s = snapState();
   if (s === lastSnap) return;
-  if (lastSnap !== null) { undoStack.push(lastSnap); if (undoStack.length > 100) undoStack.shift(); }
+  if (lastSnap !== null) { undoStack.push(lastSnap); if (undoStack.length > 150) undoStack.shift(); }
   lastSnap = s; redoStack.length = 0; persist(); updateUndoBtns();
 }
 function restoreSnap(s) {
   const d = JSON.parse(s);
-  state.objects = d.objects; state.nextId = d.nextId;
-  if (!byId(state.sel)) state.sel = null;
-  lastSnap = s; persist(); syncAll();
+  Object.assign(state, { features: d.features, marker: d.marker, nextId: d.nextId, fid: d.fid, hidden: d.hidden || [] });
+  lastSnap = s; reeval(); persist(); syncAll();
 }
 function undo() { if (!undoStack.length) return; redoStack.push(lastSnap); restoreSnap(undoStack.pop()); updateUndoBtns(); }
 function redo() { if (!redoStack.length) return; undoStack.push(lastSnap); restoreSnap(redoStack.pop()); updateUndoBtns(); }
 function updateUndoBtns() { $('#btnUndo').disabled = !undoStack.length; $('#btnRedo').disabled = !redoStack.length; }
 
 function persist() {
-  try { localStorage.setItem(STORE_KEY, JSON.stringify({ objects: state.objects, nextId: state.nextId, printer: state.printer, quality: state.quality, snap: state.snap })); } catch (e) { }
+  try { localStorage.setItem(STORE_KEY, JSON.stringify({ v: 2, features: state.features, marker: state.marker, nextId: state.nextId, fid: state.fid, hidden: state.hidden, printer: state.printer, quality: state.quality, snap: state.snap })); } catch (e) { }
 }
 function loadStored() {
-  try { const s = localStorage.getItem(STORE_KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; }
+  try { const s = localStorage.getItem(STORE_KEY) || localStorage.getItem('formverkstad.v1'); return s ? JSON.parse(s) : null; } catch (e) { return null; }
+}
+// Läser in projekt: nytt format (steg) eller gammalt (objektlista)
+function loadProjectData(d) {
+  let feats = [];
+  if (Array.isArray(d.features)) {
+    const ok = new Set(['create', 'copy', 'params', 'move', 'rotate', 'mode', 'color', 'del']);
+    feats = d.features.filter(f => f && ok.has(f.op)).map(f => {
+      const g = { op: f.op, obj: +f.obj || 0 };
+      if (f.op === 'create') Object.assign(g, { type: String(f.type), name: String(f.name || '').slice(0, 80), color: /^#[0-9a-f]{6}$/i.test(f.color) ? f.color : '#2f6cb4', mode: f.mode === 'hole' ? 'hole' : 'solid', params: { ...(f.params || {}) }, pos: (f.pos || [0, 0, 0]).slice(0, 3).map(Number), rot: (f.rot || [0, 0, 0]).slice(0, 3).map(Number) });
+      if (f.op === 'copy') Object.assign(g, { src: +f.src || 0, name: String(f.name || '').slice(0, 80), d: (f.d || [0, 0, 0]).slice(0, 3).map(Number) });
+      if (f.op === 'params') g.params = { ...(f.params || {}) };
+      if (f.op === 'move') g.d = (f.d || [0, 0, 0]).slice(0, 3).map(Number);
+      if (f.op === 'rotate') g.r = (f.r || [0, 0, 0]).slice(0, 3).map(Number);
+      if (f.op === 'mode') g.mode = f.mode === 'hole' ? 'hole' : 'solid';
+      if (f.op === 'color') g.color = /^#[0-9a-f]{6}$/i.test(f.color) ? f.color : '#2f6cb4';
+      return g;
+    }).filter(f => f.op !== 'create' || core.TYPES[f.type]);
+  } else if (Array.isArray(d.objects)) {
+    feats = d.objects.filter(o => o && core.TYPES[o.type]).map((o, i) => ({ op: 'create', obj: i + 1, type: o.type, name: String(o.name || core.TYPES[o.type].label).slice(0, 80), color: /^#[0-9a-f]{6}$/i.test(o.color) ? o.color : '#2f6cb4', mode: o.mode === 'hole' ? 'hole' : 'solid', params: { ...(o.params || {}) }, pos: (o.pos || [0, 0, 0]).slice(0, 3).map(Number), rot: (o.rot || [0, 0, 0]).slice(0, 3).map(Number) }));
+  } else throw new Error('fel format');
+  feats.forEach((f, i) => f.id = i + 1);
+  state.features = feats; state.fid = feats.length + 1;
+  state.nextId = Math.max(1, ...feats.map(f => f.obj + 1));
+  const m = Number.isInteger(d.marker) && d.marker < feats.length ? Math.max(0, d.marker) : null;
+  state.marker = m; state.hidden = Array.isArray(d.hidden) ? d.hidden.map(Number) : (Array.isArray(d.objects) ? d.objects.map((o, i) => o.hidden ? i + 1 : null).filter(Boolean) : []);
+  state.sel = null; state.selFeat = null;
+  if (PRINTERS[d.printer]) state.printer = d.printer;
+  if (['low', 'medium', 'high'].includes(d.quality)) state.quality = d.quality;
+  reeval();
 }
 
 // ---------- Objekt ----------
-function makeObj(type, extra = {}) {
+function newCreate(type, extra = {}) {
   const T = core.TYPES[type];
   const used = new Set(state.objects.map(o => o.color));
   const color = (FILAMENTS.find(f => !used.has(f[1]) && f[0] !== 'Vit' && f[0] !== 'Svart') || FILAMENTS[8])[1];
-  const n = state.objects.filter(o => o.type === type).length + 1;
-  return { id: state.nextId++, type, name: T.label + (n > 1 ? ' ' + n : ''), mode: 'solid', color, params: core.defaults(type), pos: [0, 0, 0], rot: [0, 0, 0], hidden: false, ...extra };
+  const n = state.features.filter(f => f.op === 'create' && f.type === type).length + 1;
+  return { op: 'create', obj: state.nextId++, type, name: T.label + (n > 1 ? ' ' + n : ''), color, mode: 'solid', params: core.defaults(type), pos: [0, 0, 0], rot: [0, 0, 0], ...extra };
 }
 function localBox(o) {
   const e = core.buildLocal(o);
@@ -954,53 +1128,111 @@ function localBox(o) {
   return b.applyMatrix4(m);
 }
 function addObject(type) {
-  const o = makeObj(type);
-  const lb = localBox(o);
+  const f = newCreate(type);
+  const lb = localBox(f);
   if (lastResult && lastResult.bbox && lb) {
     const P = PRINTERS[state.printer].size;
     const x = lastResult.bbox.max[0] + 6 - lb.min.x;
     const y = lastResult.bbox.min[1] - 6 - lb.max.y;
-    if (x + lb.max.x <= P[0] / 2) o.pos = [snapV(x), 0, 0];
-    else if (y + lb.min.y >= -P[1] / 2) o.pos = [0, snapV(y), 0];
+    if (x + lb.max.x <= P[0] / 2) f.pos = [snapV(x), 0, 0];
+    else if (y + lb.min.y >= -P[1] / 2) f.pos = [0, snapV(y), 0];
   }
-  state.objects.push(o);
-  state.sel = o.id;
+  insertFeature(f); reeval();
+  state.sel = f.obj; state.selFeat = null;
   commit(); syncAll();
-  toast(`${o.name} lades till`);
+  toast(`${f.name} lades till`);
 }
 function deleteSel() {
   const o = selObj(); if (!o) return;
-  state.objects = state.objects.filter(x => x !== o);
-  state.sel = null; commit(); syncAll(); toast(`${o.name} togs bort`);
+  insertFeature({ op: 'del', obj: o.id }); reeval();
+  state.sel = null; state.selFeat = null; commit(); syncAll(); toast(`${o.name} togs bort. Steget syns i historiken.`);
 }
 function duplicateSel() {
   const o = selObj(); if (!o) return;
-  const c = JSON.parse(JSON.stringify(o));
-  c.id = state.nextId++; c.name = o.name + ' (kopia)';
   const lb = localBox(o); const w = lb ? lb.max.x - lb.min.x : 10;
-  c.pos = [o.pos[0] + snapV(w + 5), o.pos[1], o.pos[2]];
-  state.objects.push(c); state.sel = c.id; commit(); syncAll();
+  const f = insertFeature({ op: 'copy', obj: state.nextId++, src: o.id, name: o.name + ' (kopia)', d: [snapV(w + 5), 0, 0] });
+  reeval(); state.sel = f.obj; state.selFeat = null; commit(); syncAll();
 }
 function dropSel() {
   const o = selObj(); if (!o) return;
   const lb = localBox(o); if (!lb) return;
-  o.pos[2] = -lb.min.z; commit(); syncAll();
+  moveObj(o, [0, 0, -(o.pos[2] + lb.min.z)]); commit(); syncAll();
 }
 function centerSel() {
   const o = selObj(); if (!o) return;
   const lb = localBox(o); if (!lb) return;
-  o.pos[0] = -(lb.min.x + lb.max.x) / 2; o.pos[1] = -(lb.min.y + lb.max.y) / 2; commit(); syncAll();
+  moveObj(o, [-(o.pos[0] + (lb.min.x + lb.max.x) / 2), -(o.pos[1] + (lb.min.y + lb.max.y) / 2), 0]); commit(); syncAll();
 }
 const snapV = v => state.snap > 0 ? Math.round(v / state.snap) * state.snap : Math.round(v * 100) / 100;
 
 function exampleScene() {
-  state.objects = []; state.nextId = 1;
-  const sign = makeObj('sign', { name: 'Namnskylt', color: '#2f6cb4' });
-  sign.params.text = 'Formverkstad'; sign.params.size = 9; sign.params.w = 100; sign.params.hole = true;
-  state.objects.push(sign);
-  const box = makeObj('storage', { name: 'Förvaringslåda', color: '#2e9d5a', pos: [0, 50, 0] });
+  state.features = []; state.nextId = 1; state.fid = 1; state.marker = null; state.hidden = []; reeval();
+  const sign = newCreate('sign', { name: 'Namnskylt', color: '#2f6cb4' });
+  Object.assign(sign.params, { text: 'Formverkstad', size: 9, w: 100, hole: true });
+  insertFeature(sign);
+  const box = newCreate('storage', { name: 'Förvaringslåda', color: '#2e9d5a', pos: [0, 50, 0] });
   box.params.div = 1;
-  state.objects.push(box);
+  insertFeature(box);
+  reeval();
+}
+
+// ---------- Beskrivning av steg ----------
+const OPS = {
+  create: { label: 'Skapa', ic: '<path d="M12 5v14M5 12h14"/>' },
+  copy: { label: 'Kopiera', ic: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>' },
+  params: { label: 'Mått', ic: '<path d="M3 16 16 3l5 5L8 21z"/><path d="m7 12 2 2m1-5 2 2m1-5 2 2"/>' },
+  move: { label: 'Flytta', ic: '<path d="M12 3v18M3 12h18M12 3l-3 3m3-3 3 3M12 21l-3-3m3 3 3-3M3 12l3-3m-3 3 3 3M21 12l-3-3m3 3-3 3"/>' },
+  rotate: { label: 'Rotera', ic: '<path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v4h-4"/>' },
+  mode: { label: 'Hål / solid', ic: '<circle cx="12" cy="12" r="8"/><path d="m7 15 8-8m-5 10 7-7"/>' },
+  color: { label: 'Färg', ic: '<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11Z"/>' },
+  del: { label: 'Ta bort', ic: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>' },
+};
+const opIcon = op => `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${OPS[op].ic}</svg>`;
+const sgn = v => (v > 0 ? '+' : v < 0 ? '−' : '') + fmt(Math.abs(v), 2);
+const filName = c => (FILAMENTS.find(f => f[1] === c) || ['egen'])[0];
+function paramText(type, k, v) {
+  const p = core.TYPES[type].params.find(x => x.k === k); if (!p) return '';
+  if (p.kind === 'bool') return `${p.label} ${v ? 'på' : 'av'}`;
+  if (p.kind === 'text') return `”${String(v).replace(/\n/g, ' ').slice(0, 24)}”`;
+  if (p.kind === 'select') return (p.options.find(o => o[0] === v) || ['', v])[1];
+  return `${p.label.replace(/ \(.\)$/, '')} ${fmt(+v, 2)}${p.unit ? ' ' + p.unit : ''}`;
+}
+function featText(f) {
+  const typeOf = id => { const c = state.features.find(x => x.op === 'create' && x.obj === id); if (c) return c.type; const k = state.features.find(x => x.op === 'copy' && x.obj === id); return k ? typeOf(k.src) : null; };
+  switch (f.op) {
+    case 'create': {
+      const T = core.TYPES[f.type], ps = { ...core.defaults(f.type), ...f.params };
+      const txt = T.params.find(p => p.kind === 'text');
+      const nums = T.params.filter(p => p.kind === 'num' && p.unit === 'mm' && !(txt && p.k === 'size')).slice(0, 3).map(p => fmt(+ps[p.k], 1));
+      return `${T.label}${txt ? ' ' + paramText(f.type, txt.k, ps[txt.k]) : ''} · ${nums.join(' × ')} mm${f.mode === 'hole' ? ' · hål' : ''}`;
+    }
+    case 'copy': { const s = state.features.find(x => (x.op === 'create' || x.op === 'copy') && x.obj === f.src); return `Kopia av ${s ? s.name : 'objekt'}`; }
+    case 'params': { const t = typeOf(f.obj); return Object.entries(f.params).map(([k, v]) => t ? paramText(t, k, v) : k).join(', ') || 'Mått'; }
+    case 'move': return 'Flytta ' + ['X', 'Y', 'Z'].map((a, i) => f.d[i] ? `${a} ${sgn(f.d[i])}` : '').filter(Boolean).join(', ') + ' mm';
+    case 'rotate': return 'Rotera ' + ['X', 'Y', 'Z'].map((a, i) => f.r[i] ? `${a} ${sgn(f.r[i])}°` : '').filter(Boolean).join(', ');
+    case 'mode': return f.mode === 'hole' ? 'Gjord till hål' : 'Gjord solid';
+    case 'color': return `Färg: ${filName(f.color)}`;
+    case 'del': return 'Borttagen';
+  }
+  return f.op;
+}
+
+// Spärren: visa modellen som den var efter steg n
+function setMarker(n) {
+  n = Math.max(0, Math.min(state.features.length, n));
+  state.marker = n >= state.features.length ? null : n;
+  reeval(); commit(); syncAll();
+}
+// Ta bort ett steg (skapa-steg tar med sig objektets alla steg)
+function deleteFeature(f) {
+  const idx = state.features.indexOf(f); if (idx < 0) return;
+  const gone = f.op === 'create' || f.op === 'copy' ? state.features.filter(x => x.obj === f.obj) : [f];
+  const before = state.features.slice(0, activeCount()).filter(x => gone.includes(x)).length;
+  state.features = state.features.filter(x => !gone.includes(x));
+  if (state.marker != null) state.marker = Math.max(0, state.marker - before);
+  if (state.marker != null && state.marker >= state.features.length) state.marker = null;
+  state.selFeat = null; reeval(); commit(); syncAll();
+  toast(gone.length > 1 ? `${gone.length} steg togs bort. Ångra med Ctrl+Z.` : 'Steget togs bort. Ångra med Ctrl+Z.');
 }
 
 // ---------- Three.js ----------
@@ -1056,15 +1288,11 @@ function initThree() {
   scene.add(tc.getHelper());
   tc.addEventListener('dragging-changed', e => {
     orbit.enabled = !e.value; dragging = e.value;
-    if (!e.value) { commit(); scheduleCompute(); renderProps(); }
+    if (e.value) beginDrag();
+    else { endDrag(); commit(); scheduleCompute(); renderProps(); renderTree(); }
     updateProxyLooks();
   });
-  tc.addEventListener('objectChange', () => {
-    const o = selObj(); const p = proxies.get(state.sel); if (!o || !p) return;
-    o.pos = [p.position.x, p.position.y, p.position.z].map(v => Math.round(v * 1000) / 1000);
-    o.rot = [p.rotation.x, p.rotation.y, p.rotation.z].map(r => Math.round(THREE.MathUtils.radToDeg(r) * 100) / 100);
-    scheduleCompute(); updatePosInputs();
-  });
+  tc.addEventListener('objectChange', () => { if (!dragCtx) return; dragUpdate(); scheduleCompute(); updatePosInputs(); });
 
   // markering
   let down = null;
@@ -1086,6 +1314,35 @@ function initThree() {
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
   new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'class', 'style'] });
   (function loop() { requestAnimationFrame(loop); orbit.update(); renderer.render(scene, camera); })();
+}
+// Dragning i vyn skriver till ett steg i historiken
+let dragCtx = null;
+function beginDrag() {
+  const o = selObj(), p = proxies.get(state.sel); dragCtx = null; if (!o || !p) return;
+  const mode = tc.getMode(), c = lastCreateOf(o.id);
+  let f, key, isNew = false;
+  if (mode === 'translate') {
+    if (c) { f = c; key = 'pos'; }
+    else { f = mergeable('move', o.id); if (!f) { f = insertFeature({ op: 'move', obj: o.id, d: [0, 0, 0] }); isNew = true; } key = 'd'; }
+  } else {
+    if (c) { f = c; key = 'rot'; if (!c.rot) c.rot = [0, 0, 0]; }
+    else { f = mergeable('rotate', o.id); if (!f) { f = insertFeature({ op: 'rotate', obj: o.id, r: [0, 0, 0] }); isNew = true; } key = 'r'; }
+  }
+  dragCtx = { f, key, isNew, mode, base: [...f[key]], startPos: p.position.clone(), startQ: p.quaternion.clone() };
+}
+function dragUpdate() {
+  const p = proxies.get(state.sel), c = dragCtx; if (!p || !c) return;
+  if (c.mode === 'translate') { const d = p.position.clone().sub(c.startPos); c.f[c.key] = c.base.map((v, i) => r3(v + [d.x, d.y, d.z][i])); }
+  else { const dq = p.quaternion.clone().multiply(c.startQ.clone().invert()); c.f[c.key] = rotOf(dq.multiply(qOf(c.base))); }
+  reeval();
+}
+function endDrag() {
+  const c = dragCtx; dragCtx = null; if (!c) return;
+  if (c.isNew && !c.f[c.key].some(v => Math.abs(v) > 1e-6)) {
+    const i = state.features.indexOf(c.f);
+    if (i >= 0) { state.features.splice(i, 1); if (state.marker != null) state.marker = Math.max(0, state.marker - 1); if (state.marker != null && state.marker >= state.features.length) state.marker = null; }
+  }
+  reeval();
 }
 function resize() {
   const el = vp(); const w = el.clientWidth || 1, h = el.clientHeight || 1;
@@ -1147,8 +1404,8 @@ function runCompute() {
   updateResultMesh(r);
   updateProxies();
   updateStatus();
-  updateObjList();
-  if (!selObj()) renderModelPanel();
+  renderTree();
+  if (!selObj() && state.selFeat == null) renderModelPanel();
   else updateWarnings();
   void t0;
 }
@@ -1235,7 +1492,7 @@ function updateProxyLooks() {
 }
 function attachGizmo() {
   const p = proxies.get(state.sel), o = selObj();
-  if (p && o && !o.hidden) { if (tc.object !== p) tc.attach(p); }
+  if (p && o && !o.hidden && state.selFeat == null) { if (tc.object !== p) tc.attach(p); }
   else if (tc.object) tc.detach();
   tc.setTranslationSnap(state.snap > 0 ? state.snap : null);
   tc.setRotationSnap(THREE.MathUtils.degToRad(15));
@@ -1271,89 +1528,213 @@ function buildPalettes() {
   document.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', () => addObject(b.dataset.add)));
 }
 
-function updateObjList() {
-  const ul = $('#objList');
-  $('#objCount').textContent = state.objects.length ? state.objects.length + ' st' : '';
-  if (!state.objects.length) { ul.innerHTML = '<li class="empty">Scenen är tom. Lägg till en form eller mall ovan.</li>'; return; }
+// ---------- Historieträd ----------
+const CHEV = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>';
+function renderTree() {
+  const n = state.features.length, a = activeCount();
+  $('#histCount').textContent = n ? `steg ${a} av ${n}` : '';
+  const rng = $('#histRange'); rng.max = n; rng.value = a; rng.disabled = !n;
+  $('#histFirst').disabled = $('#histPrev').disabled = a <= 0;
+  $('#histNext').disabled = $('#histLast').disabled = a >= n;
+  updateRollChip();
+  const ul = $('#histTree');
+  if (!n) { ul.innerHTML = '<li class="empty">Historiken är tom. Lägg till en form eller mall ovan.</li>'; ul._html = ''; return; }
+  const idxOf = new Map(state.features.map((f, i) => [f.id, i]));
   const errs = lastResult ? lastResult.errors : {};
-  ul.innerHTML = state.objects.map(o => `<li class="obj${o.id === state.sel ? ' sel' : ''}${o.hidden ? ' hidden' : ''}" data-id="${o.id}">
-    <span class="dot${o.mode === 'hole' ? ' hole' : ''}" style="${o.mode === 'hole' ? '' : 'background:' + o.color}"></span>
-    <span class="oname">${esc(o.name)}${o.mode === 'hole' ? '<small>hål</small>' : ''}${errs[o.id] ? '<span class="err" title="' + esc(errs[o.id]) + '">⚠</span>' : ''}</span>
-    <span class="obj-btns"><button data-act="vis" title="${o.hidden ? 'Visa' : 'Dölj'}" aria-label="${o.hidden ? 'Visa' : 'Dölj'} ${esc(o.name)}">${o.hidden ? IC.eyeOff : IC.eye}</button><button data-act="del" title="Ta bort" aria-label="Ta bort ${esc(o.name)}">${IC.trash}</button></span>
-  </li>`).join('');
+  const roots = state.features.filter(f => f.op === 'create' || f.op === 'copy');
+  const html = roots.map(cf => {
+    const id = cf.obj, o = cur.map.get(id), steps = state.features.filter(f => f.obj === id);
+    const future = idxOf.get(cf.id) >= a, gone = !o && !future, open = !state.collapsed.includes(id);
+    const hole = o ? o.mode === 'hole' : cf.mode === 'hole', color = o ? o.color : (cf.color || '#8d9398');
+    const hidden = state.hidden.includes(id), name = o ? o.name : cf.name;
+    const selRow = id === state.sel && state.selFeat == null;
+    return `<li class="node${open ? ' open' : ''}">
+      <div class="obj${selRow ? ' sel' : ''}${future ? ' future' : ''}${gone ? ' gone' : ''}${hidden ? ' hidden' : ''}" data-id="${id}" data-root="${cf.id}">
+        <button class="chev" data-act="tog" aria-label="${open ? 'Fäll ihop' : 'Visa steg för'} ${esc(name)}" aria-expanded="${open}">${CHEV}</button>
+        <span class="dot${hole ? ' hole' : ''}" style="${hole ? '' : 'background:' + color}"></span>
+        <span class="oname">${esc(name)}${hole ? '<small>hål</small>' : ''}${gone ? '<small>borttagen</small>' : ''}${future ? '<small>efter spärren</small>' : ''}${errs[id] ? '<span class="err" title="' + esc(errs[id]) + '">⚠</span>' : ''}</span>
+        <span class="obj-btns">${o ? `<button data-act="vis" title="${hidden ? 'Visa' : 'Dölj'}" aria-label="${hidden ? 'Visa' : 'Dölj'} ${esc(name)}">${hidden ? IC.eyeOff : IC.eye}</button><button data-act="del" title="Ta bort objektet (blir ett steg)" aria-label="Ta bort ${esc(name)}">${IC.trash}</button>` : ''}</span>
+      </div>
+      ${open ? `<ol class="steps">${steps.map(f => {
+        const i = idxOf.get(f.id), inf = cur.info.get(f.id), err = inf && inf.err;
+        return `<li class="step${f.id === state.selFeat ? ' sel' : ''}${i >= a ? ' future' : ''}${err ? ' err' : ''}" data-fid="${f.id}" tabindex="0" role="button" title="${esc(err || 'Klicka för att ändra steget')}"><span class="sn">${i + 1}</span>${opIcon(f.op)}<span class="st">${esc(featText(f))}</span></li>`;
+      }).join('')}</ol>` : ''}
+    </li>`;
+  }).join('');
+  if (html !== ul._html) { ul.innerHTML = html; ul._html = html; }
 }
-$('#objList').addEventListener('click', e => {
-  const li = e.target.closest('.obj'); if (!li) return;
-  const id = +li.dataset.id, act = e.target.closest('button')?.dataset.act, o = byId(id);
-  if (act === 'vis') { o.hidden = !o.hidden; commit(); syncAll(); return; }
+function updateRollChip() {
+  const c = $('#chipRoll'); if (!c) return;
+  const n = state.features.length, a = activeCount();
+  c.hidden = state.marker == null;
+  if (!c.hidden) c.querySelector('span').textContent = `Visar steg ${a} av ${n}. Nya ändringar läggs in efter steg ${a}.`;
+}
+function selectFeature(fid) {
+  const f = featById(fid); if (!f) return;
+  state.selFeat = fid;
+  state.sel = cur.map.has(f.obj) ? f.obj : null;
+  updateProxyLooks(); attachGizmo(); renderTree(); renderProps();
+}
+// pointerdown i stället för click: ett fält som tappar fokus kan rita om trädet mellan mousedown och mouseup
+$('#histTree').addEventListener('pointerdown', e => {
+  if (e.button !== 0) return;
+  const step = e.target.closest('.step');
+  if (step) { selectFeature(+step.dataset.fid); return; }
+  const row = e.target.closest('.obj'); if (!row) return;
+  const id = +row.dataset.id, act = e.target.closest('button')?.dataset.act;
+  if (act === 'tog') { const c = new Set(state.collapsed); c.has(id) ? c.delete(id) : c.add(id); state.collapsed = [...c]; renderTree(); return; }
+  if (act === 'vis') { const h = new Set(state.hidden); h.has(id) ? h.delete(id) : h.add(id); state.hidden = [...h]; reeval(); commit(); syncAll(); return; }
   if (act === 'del') { state.sel = id; deleteSel(); return; }
-  select(id);
+  if (cur.map.has(id)) { state.selFeat = null; select(id, true); }
+  else selectFeature(+row.dataset.root);
 });
+$('#histTree').addEventListener('keydown', e => { const s = e.target.closest('.step'); if (s && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); selectFeature(+s.dataset.fid); } });
 
-function select(id) {
-  if (state.sel === id) return;
-  state.sel = id; updateProxyLooks(); attachGizmo(); updateObjList(); renderProps();
+function select(id, force) {
+  if (state.sel === id && state.selFeat == null && !force) return;
+  state.sel = id; state.selFeat = null; updateProxyLooks(); attachGizmo(); renderTree(); renderProps();
 }
 
-function fieldHTML(p, v, prefix = 'pp') {
+function fieldHTML(p, v, prefix = 'pp', extraCls = '') {
   const id = `${prefix}_${p.k}`;
-  if (p.kind === 'text') return `<div class="field full"><label for="${id}">${esc(p.label)}</label><textarea class="inp-t" id="${id}" data-k="${p.k}" rows="2" spellcheck="false">${esc(v)}</textarea></div>`;
-  if (p.kind === 'bool') return `<div class="field"><label for="${id}">${esc(p.label)}</label><label class="toggle"><input type="checkbox" id="${id}" data-k="${p.k}" ${v ? 'checked' : ''}></label></div>`;
-  if (p.kind === 'select') return `<div class="field"><label for="${id}">${esc(p.label)}</label><div class="inp"><select id="${id}" data-k="${p.k}">${p.options.map(([a, b]) => `<option value="${a}" ${a === v ? 'selected' : ''}>${esc(b)}</option>`).join('')}</select></div></div>`;
-  return `<div class="field"><label for="${id}">${esc(p.label)}</label><div class="inp"><input type="number" id="${id}" data-k="${p.k}" value="${v}" step="${p.step}" ${p.min !== undefined ? `min="${p.min}"` : ''} ${p.max !== undefined ? `max="${p.max}"` : ''} inputmode="decimal"><span class="u">${esc(p.unit || '')}</span></div></div>`;
+  if (p.kind === 'text') return `<div class="field full${extraCls}"><label for="${id}">${esc(p.label)}</label><textarea class="inp-t" id="${id}" data-k="${p.k}" rows="2" spellcheck="false">${esc(v)}</textarea></div>`;
+  if (p.kind === 'bool') return `<div class="field${extraCls}"><label for="${id}">${esc(p.label)}</label><label class="toggle"><input type="checkbox" id="${id}" data-k="${p.k}" ${v ? 'checked' : ''}></label></div>`;
+  if (p.kind === 'select') return `<div class="field${extraCls}"><label for="${id}">${esc(p.label)}</label><div class="inp"><select id="${id}" data-k="${p.k}">${p.options.map(([a, b]) => `<option value="${a}" ${a === v ? 'selected' : ''}>${esc(b)}</option>`).join('')}</select></div></div>`;
+  return `<div class="field${extraCls}"><label for="${id}">${esc(p.label)}</label><div class="inp"><input type="number" id="${id}" data-k="${p.k}" value="${v}" step="${p.step}" ${p.min !== undefined ? `min="${p.min}"` : ''} ${p.max !== undefined ? `max="${p.max}"` : ''} inputmode="decimal"><span class="u">${esc(p.unit || '')}</span></div></div>`;
 }
+const xyzHTML = (key, vec, label, step) => `<div class="xyz">${['x', 'y', 'z'].map((a, i) => `<div class="inp"><span class="ax ${a}">${a.toUpperCase()}</span><input type="number" id="${key}_${a}" data-vec="${key}" data-i="${i}" value="${+(+vec[i] || 0).toFixed(2)}" step="${step}" inputmode="decimal" aria-label="${label} ${a.toUpperCase()}"></div>`).join('')}</div>`;
+const swatchHTML = cur => `<div class="swatches">${FILAMENTS.map(([n, c]) => `<button class="sw" style="background:${c}" data-color="${c}" title="${n}" aria-label="${n}" aria-pressed="${c === cur}"></button>`).join('')}</div>`;
+const modeHTML = m => `<div class="modeseg" role="group" aria-label="Typ av objekt"><button class="solid" data-mode="solid" aria-pressed="${m !== 'hole'}">Solid</button><button class="hole" data-mode="hole" aria-pressed="${m === 'hole'}">Hål</button></div>`;
+function readParam(p, el) {
+  if (p.kind === 'bool') return el.checked;
+  if (p.kind === 'text' || p.kind === 'select') return el.value;
+  let v = parseFloat(String(el.value).replace(',', '.'));
+  if (!isFinite(v)) return null;
+  if (p.min !== undefined) v = Math.max(p.min, v);
+  if (p.max !== undefined) v = Math.min(p.max, v);
+  if (p.int) v = Math.round(v);
+  return v;
+}
+const readNum = el => { const v = parseFloat(String(el.value).replace(',', '.')); return isFinite(v) ? v : null; };
 
 function renderProps() {
-  const o = selObj();
-  if (!o) return renderModelPanel();
-  const T = core.TYPES[o.type];
-  const fil = FILAMENTS.find(f => f[1] === o.color);
-  const xyz = (key, unit) => `<div class="xyz">${['x', 'y', 'z'].map((a, i) => `<div class="inp"><span class="ax ${a}">${a.toUpperCase()}</span><input type="number" id="${key}_${a}" data-vec="${key}" data-i="${i}" value="${+o[key][i].toFixed(2)}" step="${key === 'rot' ? 15 : (state.snap || 0.1)}" inputmode="decimal" aria-label="${key === 'pos' ? 'Position' : 'Rotation'} ${a.toUpperCase()}"><span class="u">${unit}</span></div>`).join('')}</div>`;
+  if (state.selFeat != null) return renderFeatEditor();
+  const o0 = selObj();
+  if (!o0) return renderModelPanel();
+  const id = o0.id, T = core.TYPES[o0.type];
+  const O = () => byId(id);
+  const fil = FILAMENTS.find(f => f[1] === o0.color);
+  const nSteps = state.features.filter(f => f.obj === id).length;
   $('#props').innerHTML = `
   <section class="sec">
-    <div class="ptitle">${icon(T.icon, 22)}<input id="pName" value="${esc(o.name)}" aria-label="Namn"><span class="badge">${esc(T.group === 'tpl' ? 'Mall' : 'Form')}</span></div>
-    <div class="modeseg" role="group" aria-label="Typ av objekt">
-      <button class="solid" data-mode="solid" aria-pressed="${o.mode === 'solid'}">Solid</button>
-      <button class="hole" data-mode="hole" aria-pressed="${o.mode === 'hole'}">Hål</button>
-    </div>
-    ${o.mode === 'solid' ? `<div><div class="sub" style="margin-bottom:6px"><span>Färg</span><span class="swname">${esc(fil ? fil[0] : 'Egen')}</span></div><div class="swatches">${FILAMENTS.map(([n, c]) => `<button class="sw" style="background:${c}" data-color="${c}" title="${n}" aria-label="${n}" aria-pressed="${c === o.color}"></button>`).join('')}</div></div>`
+    <div class="ptitle">${icon(T.icon, 22)}<input id="pName" value="${esc(o0.name)}" aria-label="Namn"><span class="badge">${esc(T.group === 'tpl' ? 'Mall' : 'Form')}</span></div>
+    ${modeHTML(o0.mode)}
+    ${o0.mode === 'solid' ? `<div><div class="sub" style="margin-bottom:6px"><span>Färg</span><span class="swname">${esc(fil ? fil[0] : 'Egen')}</span></div>${swatchHTML(o0.color)}</div>`
       : `<div class="note">Hålet skärs bort ur alla solida objekt det överlappar.</div>`}
+    <div class="sub"><span>${nSteps} steg i historiken</span><button class="linkbtn" id="aHist">Visa steg</button></div>
   </section>
-  <section class="sec"><h2>Mått</h2><div class="fields" id="pFields">${T.params.map(p => fieldHTML(p, o.params[p.k])).join('')}</div><div id="pWarn"></div></section>
+  <section class="sec"><h2>Mått</h2><div class="fields" id="pFields">${T.params.map(p => fieldHTML(p, o0.params[p.k])).join('')}</div><div id="pWarn"></div></section>
   <section class="sec"><h2>Placering</h2>
-    <div class="sub">Position (mm)</div>${xyz('pos', '')}
-    <div class="sub">Rotation (°)</div>${xyz('rot', '')}
+    <div class="sub">Position (mm)</div>${xyzHTML('pos', o0.pos, 'Position', state.snap || 0.1)}
+    <div class="sub">Rotation (°)</div>${xyzHTML('rot', o0.rot, 'Rotation', 15)}
     <div class="row"><button class="btn small" id="aDrop">Lägg på plattan</button><button class="btn small" id="aCenter">Centrera</button></div>
   </section>
   <section class="sec"><div class="row"><button class="btn small" id="aDup">Dubblera</button><button class="btn small danger" id="aDel">Ta bort</button><button class="btn small" id="aDesel">Klar</button></div></section>`;
   updateWarnings();
 
-  $('#pName').addEventListener('input', e => { o.name = e.target.value || T.label; updateObjList(); });
+  $('#pName').addEventListener('input', e => { renameObj(O(), e.target.value || T.label); renderTree(); });
   $('#pName').addEventListener('change', commit);
-  document.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => { o.mode = b.dataset.mode; commit(); syncAll(); }));
-  document.querySelectorAll('[data-color]').forEach(b => b.addEventListener('click', () => { o.color = b.dataset.color; commit(); syncAll(); }));
+  $('#aHist').onclick = () => { state.collapsed = state.collapsed.filter(x => x !== id); renderTree(); const r = document.querySelector(`#histTree .obj[data-id="${id}"]`); r && r.scrollIntoView({ block: 'nearest' }); };
+  document.querySelectorAll('#props [data-mode]').forEach(b => b.addEventListener('click', () => { setObjMode(O(), b.dataset.mode); commit(); syncAll(); }));
+  document.querySelectorAll('#props [data-color]').forEach(b => b.addEventListener('click', () => { setColor(O(), b.dataset.color); commit(); syncAll(); }));
   document.querySelectorAll('#pFields [data-k]').forEach(el => {
     const p = T.params.find(x => x.k === el.dataset.k);
-    const read = () => {
-      if (p.kind === 'bool') return el.checked;
-      if (p.kind === 'text' || p.kind === 'select') return el.value;
-      let v = parseFloat(String(el.value).replace(',', '.'));
-      if (!isFinite(v)) return null;
-      if (p.min !== undefined) v = Math.max(p.min, v);
-      if (p.max !== undefined) v = Math.min(p.max, v);
-      if (p.int) v = Math.round(v);
-      return v;
-    };
-    el.addEventListener('input', () => { const v = read(); if (v === null) return; o.params[p.k] = v; scheduleCompute(); });
-    el.addEventListener('change', () => { const v = read(); if (v !== null && p.kind === 'num') el.value = v; commit(); });
+    el.addEventListener('input', () => { const v = readParam(p, el); if (v === null) return; setParam(O(), p.k, v); scheduleCompute(); });
+    el.addEventListener('change', () => { const v = readParam(p, el); if (v !== null && p.kind === 'num') el.value = v; commit(); renderTree(); });
   });
-  document.querySelectorAll('[data-vec]').forEach(el => {
-    el.addEventListener('input', () => { const v = parseFloat(String(el.value).replace(',', '.')); if (!isFinite(v)) return; o[el.dataset.vec][+el.dataset.i] = v; scheduleCompute(); });
-    el.addEventListener('change', commit);
+  document.querySelectorAll('#props [data-vec]').forEach(el => {
+    el.addEventListener('input', () => {
+      const v = readNum(el); if (v === null) return;
+      const o = O(), i = +el.dataset.i;
+      if (el.dataset.vec === 'pos') { const d = [0, 0, 0]; d[i] = v - o.pos[i]; moveObj(o, d); }
+      else { const t = [...o.rot]; t[i] = v; rotateObj(o, deltaRot(o.rot, t)); }
+      scheduleCompute();
+    });
+    el.addEventListener('change', () => { commit(); renderTree(); updatePosInputs(); });
   });
   $('#aDrop').onclick = dropSel; $('#aCenter').onclick = centerSel; $('#aDup').onclick = duplicateSel; $('#aDel').onclick = deleteSel; $('#aDesel').onclick = () => select(null);
 }
+
+// Redigera ett enskilt steg i historiken
+function renderFeatEditor() {
+  const f = featById(state.selFeat);
+  if (!f) { state.selFeat = null; return renderProps(); }
+  const i = state.features.indexOf(f), a = activeCount(), inf = cur.info.get(f.id);
+  const before = evaluate(i).map.get(f.obj);
+  const root = state.features.find(x => x.obj === f.obj && (x.op === 'create' || x.op === 'copy'));
+  const type = f.op === 'create' ? f.type : (before && before.type);
+  const T = type && core.TYPES[type];
+  let body = '';
+  if (f.op === 'create') {
+    const ps = { ...core.defaults(f.type), ...f.params };
+    body = `<div class="field full"><label for="fName">Namn</label><div class="inp"><input id="fName" value="${esc(f.name)}"></div></div>
+      ${modeHTML(f.mode)}
+      ${f.mode !== 'hole' ? `<div><div class="sub" style="margin-bottom:6px"><span>Färg</span><span class="swname">${esc(filName(f.color))}</span></div>${swatchHTML(f.color)}</div>` : ''}
+      <h2 class="h2s">Mått</h2><div class="fields" id="fFields">${T.params.map(p => fieldHTML(p, ps[p.k], 'fp')).join('')}</div>
+      <h2 class="h2s">Startposition (mm)</h2>${xyzHTML('pos', f.pos, 'Startposition', state.snap || 0.1)}
+      <h2 class="h2s">Startrotation (°)</h2>${xyzHTML('rot', f.rot || [0, 0, 0], 'Startrotation', 15)}`;
+  } else if (f.op === 'copy') {
+    body = `<div class="field full"><label for="fName">Namn på kopian</label><div class="inp"><input id="fName" value="${esc(f.name)}"></div></div>
+      <h2 class="h2s">Förskjutning från originalet (mm)</h2>${xyzHTML('d', f.d, 'Förskjutning', state.snap || 0.1)}`;
+  } else if (f.op === 'params') {
+    body = T ? `<div class="sub">Markerade mått ändras i det här steget. Ändra ett annat värde för att lägga till det.</div>
+      <div class="fields" id="fFields">${T.params.map(p => fieldHTML(p, p.k in f.params ? f.params[p.k] : before.params[p.k], 'fp', p.k in f.params ? ' chg' : '')).join('')}</div>` : '';
+  } else if (f.op === 'move') {
+    body = `<h2 class="h2s">Flytta (mm)</h2>${xyzHTML('d', f.d, 'Flytta', state.snap || 0.1)}`;
+  } else if (f.op === 'rotate') {
+    body = `<h2 class="h2s">Rotera (°)</h2>${xyzHTML('r', f.r, 'Rotera', 15)}<div class="sub">Vrids runt objektets egen punkt, först X, sedan Y, sedan Z.</div>`;
+  } else if (f.op === 'mode') {
+    body = modeHTML(f.mode);
+  } else if (f.op === 'color') {
+    body = `<div class="sub" style="margin-bottom:-4px"><span>Färg</span><span class="swname">${esc(filName(f.color))}</span></div>${swatchHTML(f.color)}`;
+  } else if (f.op === 'del') {
+    body = `<div class="note">Objektet tas bort i det här steget. Ta bort steget om du vill ha tillbaka objektet.</div>`;
+  }
+  $('#props').innerHTML = `
+  <section class="sec">
+    <div class="ptitle"><span class="opbadge">${opIcon(f.op)}</span><div class="ft"><b>Steg ${i + 1}: ${esc(OPS[f.op].label)}</b><span>${esc(root ? (cur.map.get(f.obj) || {}).name || root.name : '')}</span></div></div>
+    ${i >= a ? `<div class="note warn">Steget ligger efter spärren och syns inte i modellen just nu.</div>` : ''}
+    ${inf && inf.err ? `<div class="note bad">${esc(inf.err)}</div>` : ''}
+    ${(f.op === 'create' || f.op === 'copy') ? `<div class="sub">Ändringar här slår igenom i alla senare steg.</div>` : ''}
+  </section>
+  <section class="sec">${body}</section>
+  <section class="sec"><div class="row">
+    <button class="btn small" id="fRoll">${i + 1 === a && state.marker != null ? 'Visa senaste' : 'Spola tillbaka hit'}</button>
+    <button class="btn small danger" id="fDel">Ta bort steget</button>
+    <button class="btn small" id="fDone">Klar</button>
+  </div>${f.op === 'create' || f.op === 'copy' ? `<div class="sub">Tar du bort det här steget försvinner alla steg för objektet.</div>` : ''}</section>`;
+
+  const changed = () => { reeval(); scheduleCompute(); };
+  const done = () => { commit(); renderTree(); };
+  const fName = $('#fName');
+  if (fName) { fName.addEventListener('input', () => { f.name = fName.value || (T ? T.label : 'Objekt'); reeval(); renderTree(); }); fName.addEventListener('change', commit); }
+  document.querySelectorAll('#props [data-mode]').forEach(b => b.addEventListener('click', () => { f.mode = b.dataset.mode; reeval(); commit(); syncAll(); }));
+  document.querySelectorAll('#props [data-color]').forEach(b => b.addEventListener('click', () => { f.color = b.dataset.color; reeval(); commit(); syncAll(); }));
+  document.querySelectorAll('#fFields [data-k]').forEach(el => {
+    const p = T.params.find(x => x.k === el.dataset.k);
+    el.addEventListener('input', () => { const v = readParam(p, el); if (v === null) return; f.params[p.k] = v; el.closest('.field').classList.add('chg'); changed(); });
+    el.addEventListener('change', () => { const v = readParam(p, el); if (v !== null && p.kind === 'num') el.value = v; done(); });
+  });
+  document.querySelectorAll('#props [data-vec]').forEach(el => {
+    el.addEventListener('input', () => { const v = readNum(el); if (v === null) return; const k = el.dataset.vec; if (!f[k]) f[k] = [0, 0, 0]; f[k][+el.dataset.i] = v; changed(); });
+    el.addEventListener('change', done);
+  });
+  $('#fRoll').onclick = () => setMarker(i + 1 === a && state.marker != null ? state.features.length : i + 1);
+  $('#fDel').onclick = () => deleteFeature(f);
+  $('#fDone').onclick = () => { state.selFeat = null; renderTree(); renderProps(); attachGizmo(); };
+}
 function updatePosInputs() {
+  if (state.selFeat != null) return;
   const o = selObj(); if (!o) return;
   for (const k of ['pos', 'rot']) ['x', 'y', 'z'].forEach((a, i) => { const el = document.getElementById(`${k}_${a}`); if (el && document.activeElement !== el) el.value = +o[k][i].toFixed(2); });
 }
@@ -1399,7 +1780,7 @@ function renderModelPanel() {
   document.querySelectorAll('[data-q]').forEach(b => b.addEventListener('click', () => { state.quality = b.dataset.q; core.setQuality(state.quality); persist(); runCompute(); renderModelPanel(); }));
 }
 
-function syncAll() { updateObjList(); renderProps(); runCompute(); }
+function syncAll() { reeval(); renderTree(); renderProps(); runCompute(); }
 
 // ---------- Export och filer ----------
 const isArtifact = !!(window.claude && typeof window.claude.use === 'function');
@@ -1425,7 +1806,7 @@ function openExport() {
   const first = state.objects.find(o => o.mode === 'solid' && !o.hidden);
   if (!$('#expName').value) $('#expName').value = slug(first && first.name);
   const issues = sceneIssues().filter(i => i.k === 'bad');
-  $('#expWarn').innerHTML = issues.map(i => `<div class="note bad">${esc(i.t)} för ${esc(PRINTERS[state.printer].label)}. Du kan exportera ändå, men flytta eller skala om i Bambu Studio.</div>`).join('');
+  $('#expWarn').innerHTML = (state.marker != null ? `<div class="note warn">Historiken är tillbakaspolad. Exporten innehåller modellen som den ser ut vid steg ${activeCount()} av ${state.features.length}.</div>` : '') + issues.map(i => `<div class="note bad">${esc(i.t)} för ${esc(PRINTERS[state.printer].label)}. Du kan exportera ändå, men flytta eller skala om i Bambu Studio.</div>`).join('');
   updateExpNote(); $('#expStatus').textContent = '';
   showDlg('#dlgExport');
 }
@@ -1462,7 +1843,7 @@ async function doExport() {
 }
 
 async function saveProject() {
-  const data = JSON.stringify({ app: 'Formverkstad', version: 1, printer: state.printer, quality: state.quality, objects: state.objects }, null, 1);
+  const data = JSON.stringify({ app: 'Formverkstad', version: 2, printer: state.printer, quality: state.quality, features: state.features, marker: state.marker, hidden: state.hidden }, null, 1);
   const first = state.objects.find(o => o.mode === 'solid');
   try { await saveFile(`${slug(first ? first.name : 'projekt')}-projekt.json`, data, 'application/json'); toast('Projektfilen sparades.'); }
   catch (e) { toast(saveErr(e)); }
@@ -1471,18 +1852,10 @@ function openProject(file) {
   const fr = new FileReader();
   fr.onload = () => {
     try {
-      const d = JSON.parse(fr.result);
-      if (!Array.isArray(d.objects)) throw new Error('fel format');
-      const objs = d.objects.filter(o => o && core.TYPES[o.type]).map((o, i) => ({
-        id: i + 1, type: o.type, name: String(o.name || core.TYPES[o.type].label).slice(0, 80), mode: o.mode === 'hole' ? 'hole' : 'solid',
-        color: /^#[0-9a-f]{6}$/i.test(o.color) ? o.color : '#2f6cb4', params: { ...core.defaults(o.type), ...(o.params || {}) },
-        pos: (o.pos || [0, 0, 0]).slice(0, 3).map(Number), rot: (o.rot || [0, 0, 0]).slice(0, 3).map(Number), hidden: !!o.hidden,
-      }));
-      state.objects = objs; state.nextId = objs.length + 1; state.sel = null;
-      if (PRINTERS[d.printer]) state.printer = d.printer;
-      if (['low', 'medium', 'high'].includes(d.quality)) { state.quality = d.quality; core.setQuality(d.quality); }
+      loadProjectData(JSON.parse(fr.result));
+      core.setQuality(state.quality);
       buildPlate(); commit(); syncAll(); setView('iso'); toast(`Öppnade ${file.name}`);
-    } catch (e) { toast('Filen kunde inte läsas. Välj en projektfil (.json) från Formverkstad.'); }
+    } catch (e) { console.error(e); toast('Filen kunde inte läsas. Välj en projektfil (.json) från Formverkstad.'); }
   };
   fr.readAsText(file);
 }
@@ -1503,6 +1876,13 @@ function wireUI() {
   $('#btnExport').onclick = openExport; $('#btnDoExport').onclick = doExport;
   $('#modeMove').onclick = () => setMode('translate'); $('#modeRot').onclick = () => setMode('rotate');
   $('#snap').value = String(state.snap);
+  $('#histFirst').onclick = () => setMarker(0);
+  $('#histPrev').onclick = () => setMarker(activeCount() - 1);
+  $('#histNext').onclick = () => setMarker(activeCount() + 1);
+  $('#histLast').onclick = () => setMarker(state.features.length);
+  $('#histRange').addEventListener('input', e => { const n = +e.target.value; state.marker = n >= state.features.length ? null : n; reeval(); renderTree(); renderProps(); scheduleCompute(); });
+  $('#histRange').addEventListener('change', () => { commit(); syncAll(); });
+  $('#chipRoll button').onclick = () => setMarker(state.features.length);
   $('#snap').onchange = e => { state.snap = +e.target.value; persist(); attachGizmo(); };
   document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => setView(b.dataset.view));
   const menu = $('#menu'), mb = $('#btnMenu');
@@ -1511,8 +1891,8 @@ function wireUI() {
   menu.addEventListener('click', e => {
     const a = e.target.closest('button')?.dataset.act; if (!a) return;
     menu.hidden = true;
-    if (a === 'new') { state.objects = []; state.sel = null; commit(); syncAll(); toast('Nytt tomt projekt. Ångra med Ctrl+Z.'); }
-    if (a === 'example') { exampleScene(); state.sel = null; commit(); syncAll(); setView('iso'); }
+    if (a === 'new') { Object.assign(state, { features: [], marker: null, hidden: [], sel: null, selFeat: null }); reeval(); commit(); syncAll(); toast('Nytt tomt projekt. Ångra med Ctrl+Z.'); }
+    if (a === 'example') { exampleScene(); state.sel = null; state.selFeat = null; commit(); syncAll(); setView('iso'); }
     if (a === 'open') $('#fileOpen').click();
     if (a === 'save') saveProject();
     if (a === 'help') showDlg('#dlgHelp');
@@ -1530,13 +1910,13 @@ function wireUI() {
     if (mod) return;
     const o = selObj();
     if (e.key === 'Delete' || e.key === 'Backspace') { if (o) { e.preventDefault(); deleteSel(); } return; }
-    if (e.key === 'Escape') { select(null); return; }
+    if (e.key === 'Escape') { if (state.selFeat != null) { state.selFeat = null; renderTree(); renderProps(); attachGizmo(); } else select(null); return; }
     if (e.key === 'g' || e.key === 'G') { setMode('translate'); return; }
     if (e.key === 'r' || e.key === 'R') { setMode('rotate'); return; }
     if (e.key === 'f' || e.key === 'F') { setView('fit'); return; }
     const step = (state.snap || 1) * (e.shiftKey ? 10 : 1);
     const mv = { ArrowLeft: [0, -step], ArrowRight: [0, step], ArrowUp: [1, step], ArrowDown: [1, -step], PageUp: [2, step], PageDown: [2, -step] }[e.key];
-    if (mv && o) { e.preventDefault(); o.pos[mv[0]] = Math.round((o.pos[mv[0]] + mv[1]) * 1000) / 1000; commit(); runCompute(); updatePosInputs(); }
+    if (mv && o && state.selFeat == null) { e.preventDefault(); const d = [0, 0, 0]; d[mv[0]] = mv[1]; moveObj(o, d); commit(); runCompute(); updatePosInputs(); }
   });
 }
 
@@ -1549,13 +1929,11 @@ async function boot() {
     wasm.setup();
     core = makeCore(wasm, Font, FONT_DATA);
     const saved = loadStored();
-    if (saved && Array.isArray(saved.objects)) {
-      state.objects = saved.objects.filter(o => core.TYPES[o.type]).map(o => ({ ...o, params: { ...core.defaults(o.type), ...o.params } }));
-      state.nextId = Math.max(saved.nextId || 1, ...state.objects.map(o => o.id + 1), 1);
-      if (PRINTERS[saved.printer]) state.printer = saved.printer;
-      if (saved.quality) state.quality = saved.quality;
-      if (saved.snap !== undefined) state.snap = saved.snap;
-    } else exampleScene();
+    let loaded = false;
+    if (saved && (Array.isArray(saved.features) || Array.isArray(saved.objects))) {
+      try { loadProjectData(saved); loaded = true; if (saved.snap !== undefined) state.snap = saved.snap; } catch (e) { console.warn(e); }
+    }
+    if (!loaded) exampleScene();
     core.setQuality(state.quality);
     initThree(); buildPalettes(); wireUI();
     lastSnap = snapState(); updateUndoBtns();
